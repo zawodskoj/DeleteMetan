@@ -45,6 +45,76 @@ namespace ZaborPokraste.Pathfinding
             new DriftsAngle(120, 60, 60),
             new DriftsAngle(180, 30, 90)
         };
+
+        private static readonly Dictionary<Direction, Dictionary<Direction, DriftsAngle>> _drifts = new Dictionary<Direction, Dictionary<Direction, DriftsAngle>>()
+        {
+            {
+                Direction.East,
+                new Dictionary<Direction, DriftsAngle>()
+                {
+                    { Direction.NorthEast, _driftsAngles[0] },
+                    { Direction.SouthEast, _driftsAngles[0] },
+                    { Direction.NorthWest, _driftsAngles[1] },
+                    { Direction.SouthWest, _driftsAngles[1] },
+                    { Direction.West, _driftsAngles[2] }
+                }
+            },
+            {
+                Direction.NorthEast,
+                new Dictionary<Direction, DriftsAngle>()
+                {
+                    { Direction.East, _driftsAngles[0] },
+                    { Direction.NorthWest, _driftsAngles[0] },
+                    { Direction.SouthEast, _driftsAngles[1] },
+                    { Direction.West, _driftsAngles[1] },
+                    { Direction.SouthWest, _driftsAngles[2] }
+                }
+            },
+            {
+                Direction.NorthWest,
+                new Dictionary<Direction, DriftsAngle>()
+                {
+                    { Direction.NorthEast, _driftsAngles[0] },
+                    { Direction.West, _driftsAngles[0] },
+                    { Direction.East, _driftsAngles[1] },
+                    { Direction.SouthWest, _driftsAngles[1] },
+                    { Direction.SouthEast, _driftsAngles[2] }
+                }
+            },
+            {
+                Direction.West,
+                new Dictionary<Direction, DriftsAngle>()
+                {
+                    { Direction.NorthWest, _driftsAngles[0] },
+                    { Direction.SouthWest, _driftsAngles[0] },
+                    { Direction.NorthEast, _driftsAngles[1] },
+                    { Direction.SouthEast, _driftsAngles[1] },
+                    { Direction.East, _driftsAngles[2] }
+                }
+            },
+            {
+                Direction.SouthWest,
+                new Dictionary<Direction, DriftsAngle>()
+                {
+                    { Direction.West, _driftsAngles[0] },
+                    { Direction.SouthEast, _driftsAngles[0] },
+                    { Direction.NorthWest, _driftsAngles[1] },
+                    { Direction.East, _driftsAngles[1] },
+                    { Direction.NorthEast, _driftsAngles[2] }
+                }
+            },
+            {
+                Direction.SouthEast,
+                new Dictionary<Direction, DriftsAngle>()
+                {
+                    { Direction.SouthWest, _driftsAngles[0] },
+                    { Direction.East, _driftsAngles[0] },
+                    { Direction.West, _driftsAngles[1] },
+                    { Direction.NorthEast, _driftsAngles[1] },
+                    { Direction.NorthWest, _driftsAngles[2] }
+                }
+            },
+        };
         
         private readonly MapState _state = new MapState();
         private CarState _nextPos;
@@ -156,6 +226,11 @@ namespace ZaborPokraste.Pathfinding
                 yield return GetOrEmpty(current, 1, 0, -1);
                 yield return GetOrEmpty(current, 0, -1, 1);
                 yield return GetOrEmpty(current, 0, 1, -1);
+            }
+
+            DriftsAngle GetDriftAngles(Direction curDir, Direction dir)
+            {
+                return _drifts[curDir][dir];
             }
 
             (int speed, Location actualLoc) ApplyDrift(int preSpeed, Location curLoc, Direction curDir, Direction dir)
