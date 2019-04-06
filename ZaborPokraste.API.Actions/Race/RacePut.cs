@@ -7,7 +7,7 @@ namespace ZaborPokraste.API.Actions.Race
     /// <summary>
     /// Set new state to race
     /// </summary>
-    public class RacePut : APIAction<TurnModel, TurnResult>
+    public class RacePut : APIActionPut<TurnModel, TurnResult>
     {
         public RacePut(string sessionId, TurnModel model) : base($"/raceapi/race/{sessionId}", model)
         {
