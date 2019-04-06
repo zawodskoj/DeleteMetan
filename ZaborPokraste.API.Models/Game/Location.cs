@@ -74,5 +74,19 @@ namespace ZaborPokraste.API.Models.Game
             var p = Math.Abs(xdif) + Math.Abs(otherLoc.Y - Y) + Math.Abs(otherLoc.Z - Z);
             return p == 2;
         }
+
+        public Location SingleMove(Direction curDir)
+        {
+            switch (curDir)
+            {
+                case Direction.West: return new Location(X - 1, Y + 1, Z);
+                case Direction.East: return new Location(X + 1, Y - 1, Z);
+                case Direction.NorthWest: return new Location(X, Y + 1, Z - 1);
+                case Direction.NorthEast: return new Location(X + 1, Y, Z - 1);
+                case Direction.SouthWest: return new Location(X - 1, Y, Z + 1);
+                case Direction.SouthEast: return new Location(X, Y - 1, Z + 1);
+                default: throw new Exception("Все в говне");
+            }
+        }
     }
 }

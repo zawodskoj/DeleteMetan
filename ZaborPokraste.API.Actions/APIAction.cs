@@ -1,3 +1,4 @@
+using System;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -36,6 +37,7 @@ namespace ZaborPokraste.API.Actions
                 .ReadAsStringAsync();
             var response = JsonConvert.DeserializeObject<TRes>(result);
 
+            Console.WriteLine(result);
             if (response != null)
             {
                 return response;
@@ -48,7 +50,7 @@ namespace ZaborPokraste.API.Actions
     
     public abstract class APIActionPut<T, TRes>
     {
-        private const string ApiPath = "http://51.15.100.12:5000";
+        private const string ApiPath = "http://127.0.0.1:5000";
         protected string UrlEndpoint;
         protected T Model;
 
@@ -69,6 +71,8 @@ namespace ZaborPokraste.API.Actions
             var result = await httpResponse
                 .Content
                 .ReadAsStringAsync();
+            
+            Console.WriteLine(result);
             var response = JsonConvert.DeserializeObject<TRes>(result);
 
             if (response != null)
@@ -83,7 +87,7 @@ namespace ZaborPokraste.API.Actions
     
     public abstract class APIAction<T>
     {
-        private const string ApiPath = "http://51.15.100.12:5000";
+        private const string ApiPath = "http://127.0.0.1:5000";
         protected string UrlEndpoint;
         protected T Model;
 
@@ -108,6 +112,7 @@ namespace ZaborPokraste.API.Actions
             var result = await httpResponse
                 .Content
                 .ReadAsStringAsync();
+            Console.WriteLine(result);
             var apiError = JsonConvert.DeserializeObject<ErrorMessage>(result);
 
             if (apiError != null)

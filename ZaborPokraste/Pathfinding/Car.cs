@@ -37,7 +37,7 @@ namespace ZaborPokraste.Pathfinding
 
         public string sessionId;
 
-        private const string DefaultMap = "test";
+        private const string DefaultMap = "labirint";
 
         private static readonly List<DriftsAngle> _driftsAngles = new List<DriftsAngle>
         {
@@ -120,7 +120,7 @@ namespace ZaborPokraste.Pathfinding
         private CarState _nextPos;
 
         public Car(HttpClient client, string sessionId, Location startPos, Location endPos, 
-            IEnumerable<Cell> visibleCells, int radius,
+            List<(Location, CellType)> visibleCells, int radius,
             int startSpeed, Direction startDirection)
         {
             this.sessionId = sessionId;
@@ -134,8 +134,8 @@ namespace ZaborPokraste.Pathfinding
             {
                 _state.Cells.Add(new CellState
                 {
-                    Location = cell.Location,
-                    Type = cell.Type
+                    Location = cell.Item1,
+                    Type = cell.Item2
                 });
             }
 
@@ -185,8 +185,6 @@ namespace ZaborPokraste.Pathfinding
                 throw;
             }
         }
-
-        public bool IsPathValid() => false;
         
         public void FindPath()
         {
@@ -195,10 +193,8 @@ namespace ZaborPokraste.Pathfinding
             const int maxAccelSpeed = 30;
             const int speedStep = 10;
             
-            if (IsPathValid()) return;
-
             var stateQueue = new List<(CarState carState, int prevIndex)>();
-            stateQueue.Add((_state.CarState, 0));
+            stateQueue.Add((new CarState(_state.CarState.Location, _state.CarState.Speed, _state.CarState.Direction, _state.CarState.TurnAcceleration), 0));
             var passedLocs = new HashSet<Location>();
             passedLocs.Add(_state.CarState.Location);
 
@@ -235,9 +231,31 @@ namespace ZaborPokraste.Pathfinding
                 return _drifts[curDir][dir];
             }
 
-            (int speed, Location actualLoc) ApplyDrift(int preSpeed, Location curLoc, Direction curDir, Direction dir)
+            (bool fuckedUp, int speed, Location actualLoc) ApplyDrift(int preSpeed, Location curLoc, Location targetLoc, Direction curDir, Direction dir)
             {
-                return (preSpeed, default); //curLoc.ApplyDirection(dir));
+                if (dir == curDir) return (false, preSpeed, targetLoc);
+                
+                var angles = GetDriftAngles(curDir, dir);
+                if (preSpeed <= angles.MaxSpeed) return (false, preSpeed, targetLoc);
+                
+                Console.WriteLine("GAS GAS GAS");
+
+                preSpeed -= angles.SpeedDownShift;
+                if (preSpeed < 0) preSpeed = 0;
+
+                targetLoc = curLoc.SingleMove(curDir);
+                
+                if (_state.Cells.FirstOrDefault(x => x.Location == targetLoc) is CellState cell)
+                {
+                    switch (cell.Type)
+                    {
+                        case CellType.Rock:
+                            return (true, preSpeed, targetLoc);
+                        // todo checks
+                    }
+                }
+                
+                return (false, preSpeed, targetLoc); //curLoc.ApplyDirection(dir));
             }
 
             var currIndex = 0;
@@ -253,13 +271,18 @@ namespace ZaborPokraste.Pathfinding
                 if (currIndex >= stateQueue.Count)
                 {
                     Console.WriteLine("Все в говне");
+                    Environment.Exit(0);
                 }
                 current = stateQueue[currIndex].carState;
-                //Console.WriteLine("cur state " + current);
-
+                
                 foreach (var validCell in NeighborCellsForCurrentState()
                     .Where(x => x.Type != CellType.Rock && !passedLocs.Contains(x.Location)))
                 {
+                    if (currIndex == 0)
+                    {
+                        
+                    }
+                    
                     var minSpeedRequirement = 10;
                     var maxSpeedRequirement = 100;
                     
@@ -282,8 +305,10 @@ namespace ZaborPokraste.Pathfinding
                                 if (preSpeed < minSpeedRequirement || preSpeed > maxSpeedRequirement) continue;
                                 
                                 var dir = current.Location.GetDirectionTo(validCell.Location);
-                                var (speed, _) = ApplyDrift(preSpeed, current.Location, current.Direction, dir);
-                                var newCurrent = new CarState(validCell.Location, speed, dir, accel);
+                                var (fuckedUp, speed, tarLoc) = ApplyDrift(preSpeed, current.Location, validCell.Location, current.Direction, dir);
+                                if (fuckedUp) continue;
+                                
+                                var newCurrent = new CarState(tarLoc, speed, dir, accel);
                                 passedLocs.Add(newCurrent.Location);
 
                                 stateQueue.Add((newCurrent, currIndex));
@@ -297,6 +322,7 @@ namespace ZaborPokraste.Pathfinding
                                     {
                                         nextState = stateQueue[tmpIndex].carState;
                                         tmpIndex = stateQueue[tmpIndex].prevIndex;
+                                        Console.WriteLine("stack unwinding: {0} at ix {1}", nextState, tmpIndex);
                                     }
                                     Console.WriteLine("Next turn: " + nextState);
                                     _nextPos = nextState;
@@ -305,13 +331,6 @@ namespace ZaborPokraste.Pathfinding
                             // yay
                             break;
                     }
-                    
-                    if (validCell.Location == _state.EndLocation)
-                    {
-                        Console.WriteLine("Охуеть дошли");
-                        // _nextPos = stateQueue.ToArray()[1];
-                        return;
-                    };
                 }
 
                 currIndex++;
@@ -320,12 +339,9 @@ namespace ZaborPokraste.Pathfinding
 
         public (Direction dir, int accel) GetBestTurn()
         {
-            if (_nextPos.Location.IsNeighborTo(_state.EndLocation))
-                return (_nextPos.Location.GetDirectionTo(_state.EndLocation), 100);
+            if (_state.CarState.Location.IsNeighborTo(_state.EndLocation))
+                return (_state.CarState.Location.GetDirectionTo(_state.EndLocation), 100);
             
-            // var dir = _state.CarState.Location.GetDirectionTo(_nextPos.Location);
-            // var accel = _nextPos.Speed - _state.CarState.Speed;
-
             return (_nextPos.Direction, _nextPos.TurnAcceleration);
         }
         
@@ -334,6 +350,7 @@ namespace ZaborPokraste.Pathfinding
             if (_state.EndLocation == _state.CarState.Location) return true;
             
             var (dir, accel) = GetBestTurn();
+            _nextPos = null;
             
             var result = await Move(dir, accel);
             if (result.Location == _state.EndLocation) return true;
@@ -350,6 +367,10 @@ namespace ZaborPokraste.Pathfinding
                         Location = cell.Item1,
                         Type = cell.Item2    
                     });
+                }
+                else
+                {
+                    existing.Type = cell.Item2;
                 }
             }
             

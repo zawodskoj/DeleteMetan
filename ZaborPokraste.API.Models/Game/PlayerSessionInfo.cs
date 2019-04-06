@@ -17,6 +17,6 @@ namespace ZaborPokraste.API.Models.Game
         public int CurrentSpeed { get; set; }
         public PlayerStatus PlayerStatus { get; set; }
         
-        public List<Cell> NeighbourCells { get; set; } = new List<Cell>();
+        public List<(Location, CellType)> NeighbourCells { get; set; } = new List<(Location, CellType)>();
     }
 }
