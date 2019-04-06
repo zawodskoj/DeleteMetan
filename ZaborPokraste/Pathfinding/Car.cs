@@ -68,7 +68,14 @@ namespace ZaborPokraste.Pathfinding
                 });
             }
 
-            FindPath();
+            try
+            {
+                FindPath();
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
         }
 
         public static async Task<Car> CreateClient()
@@ -90,14 +97,21 @@ namespace ZaborPokraste.Pathfinding
         }
 
         public async Task EventLoop()
-        {  
-            while (!await NextStep())
+        {
+            try
             {
-                Console.WriteLine("Работаем, работяги");
-                Console.WriteLine("Стейт " + _state.CarState);
+                while (!await NextStep())
+                {
+                    Console.WriteLine("Работаем, работяги");
+                    Console.WriteLine("Стейт " + _state.CarState);
+                }
+
+                Console.WriteLine("Всё не в говне");
             }
-            
-            Console.WriteLine("Всё не в говне");
+            catch
+            {
+                throw;
+            }
         }
 
         public bool IsPathValid() => false;
@@ -159,6 +173,7 @@ namespace ZaborPokraste.Pathfinding
                     Environment.Exit(0);
                 }
                 
+                Console.WriteLine("trying to get state at index " + currIndex);
                 current = stateQueue[currIndex].carState;
                 Console.WriteLine("cur state " + current);
 
@@ -171,17 +186,21 @@ namespace ZaborPokraste.Pathfinding
                     }
                     switch (validCell.Type)
                     {
+                        case CellType.Pit:
+                        case CellType.DangerousArea:
                         case CellType.Empty:
                             for (var accel = -maxAccelSpeed; accel <= maxAccelSpeed; accel += speedStep)
                             {
                                 var preSpeed = current.Speed + accel;
+                                if (preSpeed < 0 || preSpeed > 100) continue;
+                                
                                 var dir = current.Location.GetDirectionTo(validCell.Location);
                                 var (speed, _) = ApplyDrift(preSpeed, current.Location, current.Direction, dir);
-                                current = new CarState(validCell.Location, speed, dir);
-                                passedLocs.Add(current.Location);
+                                var newCurrent = new CarState(validCell.Location, speed, dir);
+                                passedLocs.Add(newCurrent.Location);
 
-                                stateQueue.Add((current, currIndex));
-                                if (current.Location == _state.EndLocation)
+                                stateQueue.Add((newCurrent, currIndex));
+                                if (newCurrent.Location == _state.EndLocation)
                                 {
                                     hasPath = true;
 
@@ -192,25 +211,25 @@ namespace ZaborPokraste.Pathfinding
                                         tmpIndex = stateQueue[tmpIndex].prevIndex;
                                         nextLocation = stateQueue[tmpIndex].carState.Location;
                                     }
-                                    Console.WriteLine("Next turn: " + nextLocation.ToString());
+                                    Console.WriteLine("Next turn: " + nextLocation);
                                 }
                             }
                             // yay
                             break;
-                        case CellType.Pit:
-                            break;
-                            if (current.Speed < minPitSpeed)
-                            {
-                                if (current.Speed + maxAccelSpeed < minPitSpeed) break;
-                            }
-                            break;
-                        case CellType.DangerousArea:
-                            break;
-                            if (current.Speed > maxDgrSpeed)
-                            {
-                                if (current.Speed - maxAccelSpeed > maxDgrSpeed) break;
-                            }
-                            break;
+//                        case CellType.Pit:
+//                            break;
+//                            if (current.Speed < minPitSpeed)
+//                            {
+//                                if (current.Speed + maxAccelSpeed < minPitSpeed) break;
+//                            }
+//                            break;
+//                        case CellType.DangerousArea:
+//                            break;
+//                            if (current.Speed > maxDgrSpeed)
+//                            {
+//                                if (current.Speed - maxAccelSpeed > maxDgrSpeed) break;
+//                            }
+//                            break;
                     }
                     
                     if (validCell.Location == _state.EndLocation)
