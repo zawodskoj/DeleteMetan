@@ -9,7 +9,7 @@ namespace ZaborPokraste.API.Actions.Race
     /// </summary>
     public class RacePost : APIAction<CreateRaceDto, PlayerSessionInfo>
     {
-        public RacePost(string urlEndpoint, CreateRaceDto model) : base("/raceapi/race", model)
+        public RacePost(CreateRaceDto model) : base("/raceapi/race", model)
         {
         }
     }

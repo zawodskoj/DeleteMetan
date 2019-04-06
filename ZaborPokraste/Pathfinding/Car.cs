@@ -2,9 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
+using ZaborPokraste.API.Actions.Auth;
+using ZaborPokraste.API.Actions.Race;
 using ZaborPokraste.API.Client;
 using ZaborPokraste.API.Models;
 using ZaborPokraste.API.Models.Actions;
+using ZaborPokraste.API.Models.Auth;
 using ZaborPokraste.API.Models.Enums;
 using ZaborPokraste.API.Models.Game;
 
@@ -26,7 +32,11 @@ namespace ZaborPokraste.Pathfinding
     
     public class Car
     {
-        private readonly ApiClient _client;
+
+        private HttpClient _httpClient = new HttpClient();
+        public string sessionId;
+
+        private const string DefaultMap = "test";
 
         private static readonly List<DriftsAngle> _driftsAngles = new List<DriftsAngle>
         {
@@ -42,7 +52,6 @@ namespace ZaborPokraste.Pathfinding
             IEnumerable<Cell> visibleCells, int radius,
             int startSpeed, Direction startDirection)
         {
-            _client = client;
             var curState = new CarState(startPos, startSpeed, startDirection);
             _state.CarState = curState;
             _state.EndLocation = endPos;
@@ -57,6 +66,30 @@ namespace ZaborPokraste.Pathfinding
             }
 
             FindPath();
+        }
+
+        public async Task InitClient()
+        {
+            var token = ((new LoginPost(new LoginDto())).Dispatch(_httpClient).GetAwaiter().GetResult()).Token;
+            
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
+
+
+            var playerSessionInfo = (new RacePost(new CreateRaceDto(DefaultMap)))
+                .Dispatch(_httpClient).GetAwaiter().GetResult();
+
+            sessionId = playerSessionInfo.SessionId;
+        }
+
+        public async Task EventLoop()
+        {  
+            while (!await NextStep())
+            {
+                Console.WriteLine("Работаем, работяги");
+            }
+            
+            Console.WriteLine("Всё не в говне");
         }
 
         public bool IsPathValid() => false;
@@ -157,12 +190,12 @@ namespace ZaborPokraste.Pathfinding
             return (dir, accel);
         }
         
-        public bool NextStep()
+        public async Task<bool> NextStep()
         {
             if (_state.EndLocation == _state.CarState.Location) return true;
             
             var (dir, accel) = GetBestTurn();
-            var result = Move(dir, accel);
+            var result = await Move(dir, accel);
 
             foreach (var cell in result.VisibleCells)
             {
@@ -187,9 +220,10 @@ namespace ZaborPokraste.Pathfinding
             return false;
         }
 
-        public TurnResult Move(Direction direction, int acceleration)
+        public async Task<TurnResult> Move(Direction direction, int acceleration)
         {
-            _client.
+            return await new RacePut(sessionId, new TurnModel(direction, acceleration))
+                .Dispatch(_httpClient);
         }
     }
 }
