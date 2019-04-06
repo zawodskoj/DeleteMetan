@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -37,7 +38,7 @@ namespace ZaborPokraste.Pathfinding
 
         public string sessionId;
 
-        private const string DefaultMap = "maze";
+        private const string DefaultMap = "rift";
 
         private static readonly List<DriftsAngle> _driftsAngles = new List<DriftsAngle>
         {
@@ -192,11 +193,13 @@ namespace ZaborPokraste.Pathfinding
             const int maxDgrSpeed = 30;
             const int maxAccelSpeed = 30;
             const int speedStep = 10;
+
+            const int maxPasses = 5;
             
             var stateQueue = new List<(CarState carState, int prevIndex)>();
             stateQueue.Add((_state.CarState, 0));
-            var passedLocs = new HashSet<Location>();
-            passedLocs.Add(_state.CarState.Location);
+            var passedLocs = new ConcurrentDictionary<Location, int>();
+            passedLocs.TryAdd(_state.CarState.Location, 1);
 
             CarState current = null;
             
@@ -277,8 +280,11 @@ namespace ZaborPokraste.Pathfinding
                 current = stateQueue[currIndex].carState;
                 
                 foreach (var validCell in NeighborCellsForCurrentState()
-                    .Where(x => x.Type != CellType.Rock && !passedLocs.Contains(x.Location)))
+                    .Where(x => x.Type != CellType.Rock)
+                    .OrderBy(x => passedLocs.TryGetValue(x.Location, out var pss) ? pss : 0))
                 {
+                    if (passedLocs.TryGetValue(validCell.Location, out var passes) && passes > maxPasses) continue;
+                    
                     var minSpeedRequirement = 10;
                     var maxSpeedRequirement = 100;
                     
@@ -305,7 +311,7 @@ namespace ZaborPokraste.Pathfinding
                                 if (fuckedUp) continue;
                                 
                                 var newCurrent = new CarState(tarLoc, speed, dir, accel, gas);
-                                passedLocs.Add(newCurrent.Location);
+                                passedLocs.AddOrUpdate(newCurrent.Location, 1, (_, v) => v + 1);
 
                                 stateQueue.Add((newCurrent, currIndex));
                                 if (newCurrent.Location == _state.EndLocation)
