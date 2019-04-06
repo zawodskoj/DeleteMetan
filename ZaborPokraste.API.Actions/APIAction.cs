@@ -1,4 +1,5 @@
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using ZaborPokraste.API.Models.Service;
@@ -22,7 +23,7 @@ namespace ZaborPokraste.API.Actions
         {
             var httpResponse = await client.PostAsync(
                 $"{ApiPath}{UrlEndpoint}",
-                new StringContent(JsonConvert.SerializeObject(Model))
+                new StringContent(JsonConvert.SerializeObject(Model), Encoding.UTF8, "application/json")
             );
             
             var result = await httpResponse
@@ -56,7 +57,7 @@ namespace ZaborPokraste.API.Actions
         {
             var httpResponse = await client.PostAsync(
                 $"{ApiPath}{UrlEndpoint}",
-                new StringContent(JsonConvert.SerializeObject(Model))
+                new StringContent(JsonConvert.SerializeObject(Model), Encoding.UTF8, "application/json")
             );
             
             var result = await httpResponse

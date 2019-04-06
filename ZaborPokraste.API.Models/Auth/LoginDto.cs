@@ -4,11 +4,11 @@ namespace ZaborPokraste.API.Models.Auth
     {
         public LoginDto(string username = null, string password = null)
         {
-            Username = username ?? ".NET_Lewd_Community";
+            Login = username ?? ".NET_Lewd_Community";
             Password = password ?? "dXgPq9";
         }
 
-        public string Username { get; set; }
+        public string Login { get; set; }
         public string Password { get; set; }
     }
 }

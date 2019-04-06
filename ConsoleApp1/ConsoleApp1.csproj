@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ZaborPokraste.API.Actions\ZaborPokraste.API.Actions.csproj" />
+      <ProjectReference Include="..\ZaborPokraste.API.Models\ZaborPokraste.API.Models.csproj" />
+    </ItemGroup>
+
+</Project>
