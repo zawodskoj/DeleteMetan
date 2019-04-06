@@ -1,0 +1,14 @@
+namespace ZaborPokraste.API.Models.Auth
+{
+    public class LoginDto
+    {
+        public LoginDto(string username = null, string password = null)
+        {
+            Username = username ?? ".NET_Lewd_Community";
+            Password = password ?? "dXgPq9";
+        }
+
+        public string Username { get; set; }
+        public string Password { get; set; }
+    }
+}

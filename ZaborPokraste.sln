@@ -2,6 +2,14 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZaborPokraste", "ZaborPokraste\ZaborPokraste.csproj", "{57B083F8-A24E-4F09-878B-9710EB504125}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZaborPokraste.API.Client", "ZaborPokraste.API.Client\ZaborPokraste.API.Client.csproj", "{7D532D37-6F3F-435A-8285-2418A4FCE1CD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ZaborPokraste.API", "ZaborPokraste.API", "{F811127A-5153-4E29-9A76-3A26EA25B6BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZaborPokraste.API.Models", "ZaborPokraste.API.Models\ZaborPokraste.API.Models.csproj", "{B59BAFBD-7947-4D05-A453-EEFDB239D509}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZaborPokraste.API.Actions", "ZaborPokraste.API.Actions\ZaborPokraste.API.Actions.csproj", "{21DE2307-F633-4EBF-834A-F4324B24DC73}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +20,22 @@ Global
 		{57B083F8-A24E-4F09-878B-9710EB504125}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{57B083F8-A24E-4F09-878B-9710EB504125}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{57B083F8-A24E-4F09-878B-9710EB504125}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D532D37-6F3F-435A-8285-2418A4FCE1CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D532D37-6F3F-435A-8285-2418A4FCE1CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D532D37-6F3F-435A-8285-2418A4FCE1CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D532D37-6F3F-435A-8285-2418A4FCE1CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B59BAFBD-7947-4D05-A453-EEFDB239D509}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B59BAFBD-7947-4D05-A453-EEFDB239D509}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B59BAFBD-7947-4D05-A453-EEFDB239D509}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B59BAFBD-7947-4D05-A453-EEFDB239D509}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21DE2307-F633-4EBF-834A-F4324B24DC73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21DE2307-F633-4EBF-834A-F4324B24DC73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21DE2307-F633-4EBF-834A-F4324B24DC73}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21DE2307-F633-4EBF-834A-F4324B24DC73}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7D532D37-6F3F-435A-8285-2418A4FCE1CD} = {F811127A-5153-4E29-9A76-3A26EA25B6BA}
+		{B59BAFBD-7947-4D05-A453-EEFDB239D509} = {F811127A-5153-4E29-9A76-3A26EA25B6BA}
+		{21DE2307-F633-4EBF-834A-F4324B24DC73} = {F811127A-5153-4E29-9A76-3A26EA25B6BA}
 	EndGlobalSection
 EndGlobal
