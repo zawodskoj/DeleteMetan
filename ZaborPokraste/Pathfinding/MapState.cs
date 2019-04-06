@@ -26,6 +26,9 @@ namespace ZaborPokraste.Pathfinding
         public Location Location { get; }
         public int Speed { get; }
         public Direction Direction { get; }
+
+        public override string ToString() =>
+            $"loc {Location} speed {Speed} dir {Direction}";
     }
 
     public class CellState

@@ -8,7 +8,7 @@ namespace ZaborPokraste.API.Models.Game
     {
         public string SessionId { get; set; }
         public string PlayerId { get; set; }
-        public Enum CurrentDirection { get; set; }
+        public Direction CurrentDirection { get; set; }
         
         public Location CurrentLocation { get; set; }
         public Location FinishLocation { get; set; }

@@ -32,8 +32,9 @@ namespace ZaborPokraste.Pathfinding
     
     public class Car
     {
+        private readonly HttpClient _client;
+        private readonly int _radius;
 
-        private HttpClient _httpClient = new HttpClient();
         public string sessionId;
 
         private const string DefaultMap = "test";
@@ -48,10 +49,12 @@ namespace ZaborPokraste.Pathfinding
         private readonly MapState _state = new MapState();
         private CarState _nextPos;
 
-        public Car(ApiClient client, Location startPos, Location endPos, 
+        public Car(HttpClient client, Location startPos, Location endPos, 
             IEnumerable<Cell> visibleCells, int radius,
             int startSpeed, Direction startDirection)
         {
+            _client = client;
+            _radius = radius;
             var curState = new CarState(startPos, startSpeed, startDirection);
             _state.CarState = curState;
             _state.EndLocation = endPos;
@@ -68,18 +71,22 @@ namespace ZaborPokraste.Pathfinding
             FindPath();
         }
 
-        public async Task InitClient()
+        public static async Task<Car> CreateClient()
         {
-            var token = ((new LoginPost(new LoginDto())).Dispatch(_httpClient).GetAwaiter().GetResult()).Token;
+            var hc = new HttpClient();
+            var token = ((new LoginPost(new LoginDto())).Dispatch(hc).GetAwaiter().GetResult()).Token;
             
-            _httpClient.DefaultRequestHeaders.Authorization =
+            hc.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", token);
 
 
-            var playerSessionInfo = (new RacePost(new CreateRaceDto(DefaultMap)))
-                .Dispatch(_httpClient).GetAwaiter().GetResult();
+            var playerSessionInfo = await (new RacePost(new CreateRaceDto(DefaultMap)))
+                .Dispatch(hc);
 
-            sessionId = playerSessionInfo.SessionId;
+            var sessionId = playerSessionInfo.SessionId;
+            
+            return new Car(hc, playerSessionInfo.CurrentLocation, playerSessionInfo.FinishLocation,
+                playerSessionInfo.NeighbourCells, playerSessionInfo.Radius, playerSessionInfo.CurrentSpeed, playerSessionInfo.CurrentDirection);
         }
 
         public async Task EventLoop()
@@ -87,6 +94,7 @@ namespace ZaborPokraste.Pathfinding
             while (!await NextStep())
             {
                 Console.WriteLine("Работаем, работяги");
+                Console.WriteLine("Стейт " + _state.CarState);
             }
             
             Console.WriteLine("Всё не в говне");
@@ -108,7 +116,7 @@ namespace ZaborPokraste.Pathfinding
             var passedLocs = new HashSet<Location>();
             passedLocs.Add(_state.CarState.Location);
 
-            var current = _state.CarState;
+            CarState current = null;
             
             Cell GetOrEmpty(CarState state, int dx, int dy, int dz)
             {
@@ -118,9 +126,12 @@ namespace ZaborPokraste.Pathfinding
 
                 var loc = new Location(x, y, z);
                 var cell = _state.Cells.FirstOrDefault(a => a.Location == loc);
+
+                var isOutOfBounds = Math.Abs(x) > _radius || Math.Abs(y) > _radius || Math.Abs(z) > _radius;
+                
                 return cell != null
                     ? new Cell {Type = cell.Type, Location = cell.Location}
-                    : new Cell {Type = CellType.Empty, Location = loc};
+                    : new Cell {Type = isOutOfBounds ? CellType.Rock : CellType.Empty, Location = loc};
             }
 
             IEnumerable<Cell> NeighborCellsForCurrentState()
@@ -140,6 +151,15 @@ namespace ZaborPokraste.Pathfinding
             
             while (true)
             {
+                if (stack.Count == 0)
+                {
+                    Console.WriteLine("Все в говне");
+                    Environment.Exit(0);
+                }
+                
+                current = stack.Pop();
+                Console.WriteLine("cur state " + current);
+
                 foreach (var validCell in NeighborCellsForCurrentState()
                     .Where(x => x.Type != CellType.Rock && !passedLocs.Contains(x.Location)))
                 {
@@ -154,6 +174,7 @@ namespace ZaborPokraste.Pathfinding
                                 current = new CarState(validCell.Location, speed, dir);
                                 passedLocs.Add(current.Location);
                                 stack.Push(current);
+                                goto nevgovne;
                             }
                             // yay
                             break;
@@ -175,10 +196,13 @@ namespace ZaborPokraste.Pathfinding
                     
                     if (validCell.Location == _state.EndLocation)
                     {
+                        Console.WriteLine("Охуеть дошли");
                         _nextPos = stack.ToArray()[1];
-                        
+                        return;
                     };
                 }
+                
+                nevgovne: ;
             }
         }
 
@@ -223,7 +247,7 @@ namespace ZaborPokraste.Pathfinding
         public async Task<TurnResult> Move(Direction direction, int acceleration)
         {
             return await new RacePut(sessionId, new TurnModel(direction, acceleration))
-                .Dispatch(_httpClient);
+                .Dispatch(_client);
         }
     }
 }
