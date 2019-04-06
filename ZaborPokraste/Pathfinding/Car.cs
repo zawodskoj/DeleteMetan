@@ -111,8 +111,8 @@ namespace ZaborPokraste.Pathfinding
             
             if (IsPathValid()) return;
 
-            var stack = new Stack<CarState>();
-            stack.Push(_state.CarState);
+            var stateQueue = new List<(CarState carState, int prevIndex)>();
+            stateQueue.Add((_state.CarState, 0));
             var passedLocs = new HashSet<Location>();
             passedLocs.Add(_state.CarState.Location);
 
@@ -148,21 +148,27 @@ namespace ZaborPokraste.Pathfinding
             {
                 return (preSpeed, default); //curLoc.ApplyDirection(dir));
             }
-            
-            while (true)
+
+            var currIndex = 0;
+            var hasPath = false;
+            while (!hasPath)
             {
-                if (stack.Count == 0)
+                if (stateQueue.Count == 0)
                 {
                     Console.WriteLine("Все в говне");
                     Environment.Exit(0);
                 }
                 
-                current = stack.Pop();
+                current = stateQueue[currIndex].carState;
                 Console.WriteLine("cur state " + current);
 
                 foreach (var validCell in NeighborCellsForCurrentState()
                     .Where(x => x.Type != CellType.Rock && !passedLocs.Contains(x.Location)))
                 {
+                    if (hasPath)
+                    {
+                        break;
+                    }
                     switch (validCell.Type)
                     {
                         case CellType.Empty:
@@ -173,8 +179,21 @@ namespace ZaborPokraste.Pathfinding
                                 var (speed, _) = ApplyDrift(preSpeed, current.Location, current.Direction, dir);
                                 current = new CarState(validCell.Location, speed, dir);
                                 passedLocs.Add(current.Location);
-                                stack.Push(current);
-                                goto nevgovne;
+
+                                stateQueue.Add((current, currIndex));
+                                if (current.Location == _state.EndLocation)
+                                {
+                                    hasPath = true;
+
+                                    Location nextLocation = null;
+                                    var tmpIndex = currIndex;
+                                    while (tmpIndex > 0)
+                                    {
+                                        tmpIndex = stateQueue[tmpIndex].prevIndex;
+                                        nextLocation = stateQueue[tmpIndex].carState.Location;
+                                    }
+                                    Console.WriteLine("Next turn: " + nextLocation.ToString());
+                                }
                             }
                             // yay
                             break;
@@ -197,12 +216,12 @@ namespace ZaborPokraste.Pathfinding
                     if (validCell.Location == _state.EndLocation)
                     {
                         Console.WriteLine("Охуеть дошли");
-                        _nextPos = stack.ToArray()[1];
+                        // _nextPos = stateQueue.ToArray()[1];
                         return;
                     };
                 }
-                
-                nevgovne: ;
+
+                currIndex++;
             }
         }
 
