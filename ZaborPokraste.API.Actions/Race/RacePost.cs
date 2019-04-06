@@ -12,5 +12,7 @@ namespace ZaborPokraste.API.Actions.Race
         public RacePost(CreateRaceDto model) : base("/raceapi/race", model)
         {
         }
+
+        protected override HttpMethod Method => HttpMethod.Post;
     }
 }

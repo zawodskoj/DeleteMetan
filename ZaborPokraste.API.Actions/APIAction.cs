@@ -8,7 +8,8 @@ namespace ZaborPokraste.API.Actions
 {
     public abstract class APIAction<T, TRes>
     {
-        private const string ApiPath = "http://51.15.100.12:5000";
+        //private const string ApiPath = "http://51.15.100.12:5000";
+        private const string ApiPath = "http://127.0.0.1:5000";
         protected string UrlEndpoint;
         protected T Model;
 
@@ -18,12 +19,16 @@ namespace ZaborPokraste.API.Actions
             Model = model;
         }
 
+        
+        protected abstract HttpMethod Method { get; }
 
         public async Task<TRes> Dispatch(HttpClient client)
         {
-            var httpResponse = await client.PostAsync(
-                $"{ApiPath}{UrlEndpoint}",
-                new StringContent(JsonConvert.SerializeObject(Model), Encoding.UTF8, "application/json")
+            var httpResponse = await client.SendAsync(
+                new HttpRequestMessage(Method, $"{ApiPath}{UrlEndpoint}")
+                {
+                    Content = new StringContent(JsonConvert.SerializeObject(Model), Encoding.UTF8, "application/json")
+                }
             );
             
             var result = await httpResponse
@@ -82,6 +87,9 @@ namespace ZaborPokraste.API.Actions
         protected string UrlEndpoint;
         protected T Model;
 
+        
+        protected abstract HttpMethod Method { get; }
+        
         protected APIAction(string urlEndpoint, T model)
         {
             UrlEndpoint = urlEndpoint;
@@ -90,9 +98,11 @@ namespace ZaborPokraste.API.Actions
 
         public async Task Dispatch(HttpClient client)
         {
-            var httpResponse = await client.PostAsync(
-                $"{ApiPath}{UrlEndpoint}",
-                new StringContent(JsonConvert.SerializeObject(Model), Encoding.UTF8, "application/json")
+            var httpResponse = await client.SendAsync(
+                new HttpRequestMessage(Method, $"{ApiPath}{UrlEndpoint}")
+                {
+                    Content = new StringContent(JsonConvert.SerializeObject(Model), Encoding.UTF8, "application/json")
+                }
             );
             
             var result = await httpResponse

@@ -8,5 +8,7 @@ namespace ZaborPokraste.API.Actions.Help
         public MathPost(string urlEndpoint, object model) : base(urlEndpoint, model)
         {
         }
+
+        protected override HttpMethod Method => HttpMethod.Post;
     }
 }

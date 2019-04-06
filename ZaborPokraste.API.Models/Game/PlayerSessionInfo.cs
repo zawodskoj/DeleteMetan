@@ -11,7 +11,7 @@ namespace ZaborPokraste.API.Models.Game
         public Direction CurrentDirection { get; set; }
         
         public Location CurrentLocation { get; set; }
-        public Location FinishLocation { get; set; }
+        public Location Finish { get; set; }
         
         public int Radius { get; set; }
         public int CurrentSpeed { get; set; }
