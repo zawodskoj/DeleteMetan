@@ -1,31 +1,39 @@
 using System.Collections.Generic;
+using ZaborPokraste.API.Models.Enums;
+using ZaborPokraste.API.Models.Game;
 
 namespace ZaborPokraste.Pathfinding
 {
     public class MapState
     {
-        public int X { get; set; }
-        public int Y { get; set; }
-        public int Z { get; set; }
+        public Location EndLocation { get; set; }
         
-        public Direction CurrentDirection { get; set; }
+        public Stack<CarState> OldStates { get; } = new Stack<CarState>();
+        public CarState CarState { get; set; }
         
         public List<CellState> Cells { get; } = new List<CellState>();
     }
 
+    public class CarState
+    {
+        public CarState(Location location, int speed, Direction direction)
+        {
+            Location = location;
+            Speed = speed;
+            Direction = direction;
+        }
+
+        public Location Location { get; }
+        public int Speed { get; }
+        public Direction Direction { get; }
+    }
+
     public class CellState
     {
-        public int X { get; set; }
-        public int Y { get; set; }
-        public int Z { get; set; }
+        public Location Location { get; set; }
         
         public CellType Type { get; set; }
         
         public List<(int, Direction)> States { get; } = new List<(int, Direction)>();
-    }
-    
-    public enum Direction
-    {
-        West, East, NorthWest, NorthEast, SouthWest, SouthEast
     }
 }
