@@ -16,12 +16,13 @@ namespace ZaborPokraste.Pathfinding
 
     public class CarState
     {
-        public CarState(Location location, int speed, Direction direction, int turnAcceleration)
+        public CarState(Location location, int speed, Direction direction, int turnAcceleration, bool eurobeat)
         {
             Location = location;
             Speed = speed;
             Direction = direction;
             TurnAcceleration = turnAcceleration;
+            Eurobeat = eurobeat;
         }
 
         public Location Location { get; }
@@ -29,6 +30,7 @@ namespace ZaborPokraste.Pathfinding
         public Direction Direction { get; }
         
         public int TurnAcceleration { get; }
+        public bool Eurobeat { get; }
 
         public override string ToString() =>
             $"loc {Location} speed {Speed} dir {Direction}";

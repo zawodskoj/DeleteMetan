@@ -57,9 +57,9 @@ namespace ZaborPokraste.API.Models.Game
             if ((xdif, ydif) == (-1, 1)) return Direction.West;
             if ((xdif, ydif) == (1, -1)) return Direction.East;
             if ((xdif, ydif) == (0, 1)) return Direction.NorthWest;
-            if ((xdif, ydif) == (0, -1)) return Direction.SouthWest;
+            if ((xdif, ydif) == (0, -1)) return Direction.SouthEast;
             if ((xdif, ydif) == (1, 0)) return Direction.NorthEast;
-            if ((xdif, ydif) == (-1, 0)) return Direction.SouthEast;
+            if ((xdif, ydif) == (-1, 0)) return Direction.SouthWest;
             
             throw new Exception("wut?");
         }
