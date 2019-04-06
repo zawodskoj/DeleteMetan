@@ -13,5 +13,7 @@ namespace ZaborPokraste.API.Actions.Race
             base($"/raceapi/race?sessionId={sessionId}", model)
         {
         }
+
+        protected override HttpMethod Method => HttpMethod.Get;
     }
 }

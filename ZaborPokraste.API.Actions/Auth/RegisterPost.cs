@@ -1,3 +1,4 @@
+using System.Net.Http;
 using ZaborPokraste.API.Models.Auth;
 
 namespace ZaborPokraste.API.Actions.Auth
@@ -7,5 +8,7 @@ namespace ZaborPokraste.API.Actions.Auth
         public RegisterPost(RegisterDto model) : base("/raceapi/Auth/Register", model)
         {
         }
+
+        protected override HttpMethod Method => HttpMethod.Post;
     }
 }

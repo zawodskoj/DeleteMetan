@@ -92,7 +92,7 @@ namespace ZaborPokraste.Pathfinding
 
             var sessionId = playerSessionInfo.SessionId;
             
-            return new Car(hc, playerSessionInfo.CurrentLocation, playerSessionInfo.FinishLocation,
+            return new Car(hc, playerSessionInfo.CurrentLocation, playerSessionInfo.Finish,
                 playerSessionInfo.NeighbourCells, playerSessionInfo.Radius, playerSessionInfo.CurrentSpeed, playerSessionInfo.CurrentDirection);
         }
 
@@ -174,6 +174,10 @@ namespace ZaborPokraste.Pathfinding
                 }
                 
                 Console.WriteLine("trying to get state at index " + currIndex);
+                if (currIndex >= stateQueue.Count)
+                {
+                    Console.WriteLine("Все в говне");
+                }
                 current = stateQueue[currIndex].carState;
                 Console.WriteLine("cur state " + current);
 
@@ -204,14 +208,15 @@ namespace ZaborPokraste.Pathfinding
                                 {
                                     hasPath = true;
 
-                                    Location nextLocation = null;
+                                    CarState nextState = null;
                                     var tmpIndex = currIndex;
                                     while (tmpIndex > 0)
                                     {
+                                        nextState = stateQueue[tmpIndex].carState;
                                         tmpIndex = stateQueue[tmpIndex].prevIndex;
-                                        nextLocation = stateQueue[tmpIndex].carState.Location;
                                     }
-                                    Console.WriteLine("Next turn: " + nextLocation);
+                                    Console.WriteLine("Next turn: " + nextState);
+                                    _nextPos = nextState;
                                 }
                             }
                             // yay

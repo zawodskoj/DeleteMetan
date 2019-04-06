@@ -11,5 +11,7 @@ namespace ZaborPokraste.API.Actions.Auth
         public LoginPost(LoginDto model) : base("/raceapi/Auth/Login", model)
         {
         }
+
+        protected override HttpMethod Method => HttpMethod.Post;
     }
 }
