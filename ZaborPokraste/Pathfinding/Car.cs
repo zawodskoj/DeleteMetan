@@ -38,7 +38,7 @@ namespace ZaborPokraste.Pathfinding
 
         public string sessionId;
 
-        private const string DefaultMap = "the_maze";
+        private const string DefaultMap = "yinyang";
 
         private static readonly List<DriftsAngle> _driftsAngles = new List<DriftsAngle>
         {
@@ -194,7 +194,7 @@ namespace ZaborPokraste.Pathfinding
             const int maxAccelSpeed = 30;
             const int speedStep = 10;
 
-            const int maxPasses = 5;
+            const int maxPasses = 8;
             
             var stateQueue = new List<(CarState carState, int prevIndex)>();
             stateQueue.Add((_state.CarState, 0));
@@ -301,8 +301,8 @@ namespace ZaborPokraste.Pathfinding
                             maxSpeedRequirement = maxDgrSpeed;
                             goto case CellType.Empty;
                         case CellType.Empty:
-                            //for (var accel = -maxAccelSpeed; accel <= maxAccelSpeed; accel += speedStep)
-                            for (var accel = maxAccelSpeed; accel >= -maxAccelSpeed; accel -= speedStep)
+                            for (var accel = -maxAccelSpeed; accel <= maxAccelSpeed; accel += speedStep)
+                            //for (var accel = maxAccelSpeed; accel >= -maxAccelSpeed; accel -= speedStep)
                             {
                                 var preSpeed = current.Speed + accel;
                                 if (preSpeed < minSpeedRequirement || preSpeed > maxSpeedRequirement) continue;

@@ -14,6 +14,7 @@ namespace ZaborPokraste.API.Client
     {
         // private const string ApiPath = "http://51.15.100.12:5000";
         private const string ApiPath = "http://51.158.109.80:5000";
+        //private const string ApiPath = "http://127.0.0.1:5000";
         private readonly HttpClient _httpClient = new HttpClient();
         private string Token;
 
