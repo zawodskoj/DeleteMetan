@@ -10,7 +10,7 @@ namespace ZaborPokraste.API.Actions
     public abstract class APIAction<T, TRes>
     {
         //private const string ApiPath = "http://51.15.100.12:5000";
-        private const string ApiPath = "http://127.0.0.1:5000";
+        private const string ApiPath = "http://51.158.109.80:5000";
         protected string UrlEndpoint;
         protected T Model;
 
@@ -50,7 +50,7 @@ namespace ZaborPokraste.API.Actions
     
     public abstract class APIActionPut<T, TRes>
     {
-        private const string ApiPath = "http://127.0.0.1:5000";
+        private const string ApiPath = "http://51.158.109.80:5000";
         protected string UrlEndpoint;
         protected T Model;
 
@@ -87,7 +87,7 @@ namespace ZaborPokraste.API.Actions
     
     public abstract class APIAction<T>
     {
-        private const string ApiPath = "http://127.0.0.1:5000";
+        private const string ApiPath = "http://51.158.109.80:5000";
         protected string UrlEndpoint;
         protected T Model;
 

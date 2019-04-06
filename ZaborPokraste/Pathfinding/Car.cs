@@ -38,7 +38,7 @@ namespace ZaborPokraste.Pathfinding
 
         public string sessionId;
 
-        private const string DefaultMap = "rift";
+        private const string DefaultMap = "the_maze";
 
         private static readonly List<DriftsAngle> _driftsAngles = new List<DriftsAngle>
         {
@@ -127,7 +127,7 @@ namespace ZaborPokraste.Pathfinding
             this.sessionId = sessionId;
             _client = client;
             _radius = radius;
-            var curState = new CarState(startPos, startSpeed, startDirection, 0, false);
+            var curState = new CarState(startPos, startSpeed, startDirection, 0, false, null);
             _state.CarState = curState;
             _state.EndLocation = endPos;
 
@@ -301,6 +301,7 @@ namespace ZaborPokraste.Pathfinding
                             maxSpeedRequirement = maxDgrSpeed;
                             goto case CellType.Empty;
                         case CellType.Empty:
+                            //for (var accel = -maxAccelSpeed; accel <= maxAccelSpeed; accel += speedStep)
                             for (var accel = maxAccelSpeed; accel >= -maxAccelSpeed; accel -= speedStep)
                             {
                                 var preSpeed = current.Speed + accel;
@@ -310,7 +311,7 @@ namespace ZaborPokraste.Pathfinding
                                 var (gas, fuckedUp, speed, tarLoc) = ApplyDrift(preSpeed, current.Location, validCell.Location, current.Direction, dir);
                                 if (fuckedUp) continue;
                                 
-                                var newCurrent = new CarState(tarLoc, speed, dir, accel, gas);
+                                var newCurrent = new CarState(tarLoc, speed, dir, accel, gas, validCell.Location);
                                 passedLocs.AddOrUpdate(newCurrent.Location, 1, (_, v) => v + 1);
 
                                 stateQueue.Add((newCurrent, currIndex));
@@ -361,6 +362,7 @@ namespace ZaborPokraste.Pathfinding
             if (_state.EndLocation == _state.CarState.Location) return true;
             
             var (dir, accel) = GetBestTurn();
+            Console.WriteLine("moving to {0} with accel {1}", dir, accel);
             _nextPos = null;
             
             var result = await Move(dir, accel);
@@ -388,7 +390,7 @@ namespace ZaborPokraste.Pathfinding
             var visitedCell = _state.Cells.Single(x => x.Location == _state.CarState.Location);
             visitedCell.States.Add((_state.CarState.Speed, _state.CarState.Direction));
             
-            _state.CarState = new CarState(result.Location, result.Speed, result.Heading, 0, false);
+            _state.CarState = new CarState(result.Location, result.Speed, result.Heading, 0, false, null);
            
             FindPath();
 
