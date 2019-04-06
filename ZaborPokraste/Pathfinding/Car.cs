@@ -365,8 +365,11 @@ namespace ZaborPokraste.Pathfinding
 
         public async Task<TurnResult> Move(Direction direction, int acceleration)
         {
-            return await new RacePut(sessionId, new TurnModel(direction, acceleration))
+            var r = await new RacePut(sessionId, new TurnModel(direction, acceleration))
                 .Dispatch(_client);
+            await new RaceGet(sessionId).Dispatch(_client);
+
+            return r;
         }
     }
 }

@@ -9,8 +9,8 @@ namespace ZaborPokraste.API.Actions.Race
     /// </summary>
     public class RaceGet : APIAction<CreateRaceDto, PlayerSessionInfo>
     {
-        public RaceGet(string sessionId, CreateRaceDto model) : 
-            base($"/raceapi/race?sessionId={sessionId}", model)
+        public RaceGet(string sessionId) : 
+            base($"/raceapi/race?sessionId={sessionId}", null)
         {
         }
 

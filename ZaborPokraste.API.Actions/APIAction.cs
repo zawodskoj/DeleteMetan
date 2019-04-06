@@ -27,7 +27,7 @@ namespace ZaborPokraste.API.Actions
             var httpResponse = await client.SendAsync(
                 new HttpRequestMessage(Method, $"{ApiPath}{UrlEndpoint}")
                 {
-                    Content = new StringContent(JsonConvert.SerializeObject(Model), Encoding.UTF8, "application/json")
+                    Content = Method == HttpMethod.Get ? null : new StringContent(JsonConvert.SerializeObject(Model), Encoding.UTF8, "application/json")
                 }
             );
             
