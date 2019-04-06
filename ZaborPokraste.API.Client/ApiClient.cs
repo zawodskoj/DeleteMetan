@@ -1,5 +1,12 @@
 ﻿using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using ZaborPokraste.API.Actions;
+using ZaborPokraste.API.Actions.Auth;
+using ZaborPokraste.API.Models.Auth;
+using ZaborPokraste.API.Models.Service;
 
 namespace ZaborPokraste.API.Client
 {
@@ -7,11 +14,8 @@ namespace ZaborPokraste.API.Client
     {
         private const string ApiPath = "http://51.15.100.12:5000";
         private readonly HttpClient _httpClient = new HttpClient();
+        private string Token;
 
 
-        public TRes Fetch<T, TRes>(T model)
-        {
-            
-        }
     }
 }
