@@ -49,10 +49,11 @@ namespace ZaborPokraste.Pathfinding
         private readonly MapState _state = new MapState();
         private CarState _nextPos;
 
-        public Car(HttpClient client, Location startPos, Location endPos, 
+        public Car(HttpClient client, string sessionId, Location startPos, Location endPos, 
             IEnumerable<Cell> visibleCells, int radius,
             int startSpeed, Direction startDirection)
         {
+            this.sessionId = sessionId;
             _client = client;
             _radius = radius;
             var curState = new CarState(startPos, startSpeed, startDirection);
@@ -92,7 +93,7 @@ namespace ZaborPokraste.Pathfinding
 
             var sessionId = playerSessionInfo.SessionId;
             
-            return new Car(hc, playerSessionInfo.CurrentLocation, playerSessionInfo.Finish,
+            return new Car(hc, sessionId, playerSessionInfo.CurrentLocation, playerSessionInfo.Finish,
                 playerSessionInfo.NeighbourCells, playerSessionInfo.Radius, playerSessionInfo.CurrentSpeed, playerSessionInfo.CurrentDirection);
         }
 
@@ -262,17 +263,18 @@ namespace ZaborPokraste.Pathfinding
             if (_state.EndLocation == _state.CarState.Location) return true;
             
             var (dir, accel) = GetBestTurn();
+            if (_state.CarState.Speed == 0) accel += 30;
             var result = await Move(dir, accel);
 
             foreach (var cell in result.VisibleCells)
             {
-                var existing = _state.Cells.SingleOrDefault(x => x.Location == cell.Location);
+                var existing = _state.Cells.SingleOrDefault(x => x.Location == cell.Item1);
                 if (existing == null)
                 {
                     _state.Cells.Add(new CellState
                     {
-                        Location = cell.Location,
-                        Type = cell.Type
+                        Location = cell.Item1,
+                        Type = cell.Item2    
                     });
                 }
             }

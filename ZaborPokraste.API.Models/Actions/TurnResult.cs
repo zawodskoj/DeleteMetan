@@ -7,7 +7,7 @@ namespace ZaborPokraste.API.Models.Actions
     public class TurnResult
     {
         public TurnCommand Command { get; set; }
-        public List<Cell> VisibleCells { get; set; }
+        public List<(Location, CellType)> VisibleCells { get; set; }
         public Location Location { get; set; }
         public int ShortestWayLength { get; set; }
         public int Speed { get; set; }
