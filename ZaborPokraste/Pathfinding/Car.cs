@@ -126,7 +126,7 @@ namespace ZaborPokraste.Pathfinding
             this.sessionId = sessionId;
             _client = client;
             _radius = radius;
-            var curState = new CarState(startPos, startSpeed, startDirection);
+            var curState = new CarState(startPos, startSpeed, startDirection, 0);
             _state.CarState = curState;
             _state.EndLocation = endPos;
 
@@ -250,17 +250,19 @@ namespace ZaborPokraste.Pathfinding
                     Environment.Exit(0);
                 }
                 
-                Console.WriteLine("trying to get state at index " + currIndex);
                 if (currIndex >= stateQueue.Count)
                 {
                     Console.WriteLine("Все в говне");
                 }
                 current = stateQueue[currIndex].carState;
-                Console.WriteLine("cur state " + current);
+                //Console.WriteLine("cur state " + current);
 
                 foreach (var validCell in NeighborCellsForCurrentState()
                     .Where(x => x.Type != CellType.Rock && !passedLocs.Contains(x.Location)))
                 {
+                    var minSpeedRequirement = 10;
+                    var maxSpeedRequirement = 100;
+                    
                     if (hasPath)
                     {
                         break;
@@ -268,15 +270,20 @@ namespace ZaborPokraste.Pathfinding
                     switch (validCell.Type)
                     {
                         case CellType.Pit:
+                            minSpeedRequirement = minPitSpeed;
+                            goto case CellType.Empty;
+                        case CellType.DangerousArea:
+                            maxSpeedRequirement = maxDgrSpeed;
+                            goto case CellType.Empty;
                         case CellType.Empty:
-                            for (var accel = -maxAccelSpeed; accel <= maxAccelSpeed; accel += speedStep)
+                            for (var accel = maxAccelSpeed; accel >= -maxAccelSpeed; accel -= speedStep)
                             {
                                 var preSpeed = current.Speed + accel;
-                                if (preSpeed < 0 || preSpeed > 100) continue;
+                                if (preSpeed < minSpeedRequirement || preSpeed > maxSpeedRequirement) continue;
                                 
                                 var dir = current.Location.GetDirectionTo(validCell.Location);
                                 var (speed, _) = ApplyDrift(preSpeed, current.Location, current.Direction, dir);
-                                var newCurrent = new CarState(validCell.Location, speed, dir);
+                                var newCurrent = new CarState(validCell.Location, speed, dir, accel);
                                 passedLocs.Add(newCurrent.Location);
 
                                 stateQueue.Add((newCurrent, currIndex));
@@ -297,19 +304,6 @@ namespace ZaborPokraste.Pathfinding
                             }
                             // yay
                             break;
-//                            break;
-//                            if (current.Speed < minPitSpeed)
-//                            {
-//                                if (current.Speed + maxAccelSpeed < minPitSpeed) break;
-//                            }
-//                            break;
-                        case CellType.DangerousArea:
-                            break;
-                            if (current.Speed > maxDgrSpeed)
-                            {
-                                if (current.Speed - maxAccelSpeed > maxDgrSpeed) break;
-                            }
-                            break;
                     }
                     
                     if (validCell.Location == _state.EndLocation)
@@ -326,13 +320,13 @@ namespace ZaborPokraste.Pathfinding
 
         public (Direction dir, int accel) GetBestTurn()
         {
-            if (_state.CarState.Location.IsNeighborTo(_state.EndLocation))
-                return (_state.CarState.Location.GetDirectionTo(_state.EndLocation), 0);
+            if (_nextPos.Location.IsNeighborTo(_state.EndLocation))
+                return (_nextPos.Location.GetDirectionTo(_state.EndLocation), 100);
             
-            var dir = _state.CarState.Location.GetDirectionTo(_nextPos.Location);
-            var accel = _nextPos.Speed - _state.CarState.Speed;
+            // var dir = _state.CarState.Location.GetDirectionTo(_nextPos.Location);
+            // var accel = _nextPos.Speed - _state.CarState.Speed;
 
-            return (dir, accel);
+            return (_nextPos.Direction, _nextPos.TurnAcceleration);
         }
         
         public async Task<bool> NextStep()
@@ -340,16 +334,11 @@ namespace ZaborPokraste.Pathfinding
             if (_state.EndLocation == _state.CarState.Location) return true;
             
             var (dir, accel) = GetBestTurn();
-            if (_state.CarState.Speed < 70)
-            {
-                accel = 30;
-            }
-            else
-            {
-                accel = 0;
-            }
+            
             var result = await Move(dir, accel);
             if (result.Location == _state.EndLocation) return true;
+            Console.WriteLine("move result: loc {0} state {1} speed {2}", 
+                result.Location, result.Status, result.Speed);
 
             foreach (var cell in result.VisibleCells)
             {
@@ -367,7 +356,7 @@ namespace ZaborPokraste.Pathfinding
             var visitedCell = _state.Cells.Single(x => x.Location == _state.CarState.Location);
             visitedCell.States.Add((_state.CarState.Speed, _state.CarState.Direction));
             
-            _state.CarState = new CarState(result.Location, result.Speed, result.Heading);
+            _state.CarState = new CarState(result.Location, result.Speed, result.Heading, 0);
            
             FindPath();
 

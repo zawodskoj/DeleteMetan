@@ -16,16 +16,19 @@ namespace ZaborPokraste.Pathfinding
 
     public class CarState
     {
-        public CarState(Location location, int speed, Direction direction)
+        public CarState(Location location, int speed, Direction direction, int turnAcceleration)
         {
             Location = location;
             Speed = speed;
             Direction = direction;
+            TurnAcceleration = turnAcceleration;
         }
 
         public Location Location { get; }
         public int Speed { get; }
         public Direction Direction { get; }
+        
+        public int TurnAcceleration { get; }
 
         public override string ToString() =>
             $"loc {Location} speed {Speed} dir {Direction}";
