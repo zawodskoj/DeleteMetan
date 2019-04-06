@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using ZaborPokraste.API.Client;
 using ZaborPokraste.API.Models;
 using ZaborPokraste.API.Models.Actions;
 using ZaborPokraste.API.Models.Enums;
@@ -22,8 +24,10 @@ namespace ZaborPokraste.Pathfinding
         public int SpeedDownShift { get; }
     }
     
-    public abstract class Car
+    public class Car
     {
+        private readonly ApiClient _client;
+
         private static readonly List<DriftsAngle> _driftsAngles = new List<DriftsAngle>
         {
             new DriftsAngle(60, 90, 30),
@@ -32,11 +36,13 @@ namespace ZaborPokraste.Pathfinding
         };
         
         private readonly MapState _state = new MapState();
+        private CarState _nextPos;
 
-        public Car(Location startPos, Location endPos, 
+        public Car(ApiClient client, Location startPos, Location endPos, 
             IEnumerable<Cell> visibleCells, int radius,
             int startSpeed, Direction startDirection)
         {
+            _client = client;
             var curState = new CarState(startPos, startSpeed, startDirection);
             _state.CarState = curState;
             _state.EndLocation = endPos;
@@ -53,7 +59,7 @@ namespace ZaborPokraste.Pathfinding
             FindPath();
         }
 
-        public abstract bool IsPathValid();
+        public bool IsPathValid() => false;
         
         public void FindPath()
         {
@@ -66,40 +72,43 @@ namespace ZaborPokraste.Pathfinding
 
             var stack = new Stack<CarState>();
             stack.Push(_state.CarState);
+            var passedLocs = new HashSet<Location>();
+            passedLocs.Add(_state.CarState.Location);
 
             var current = _state.CarState;
             
+            Cell GetOrEmpty(CarState state, int dx, int dy, int dz)
+            {
+                var x = state.Location.X + dx;
+                var y = state.Location.Y + dy;
+                var z = state.Location.Z + dz;
+
+                var loc = new Location(x, y, z);
+                var cell = _state.Cells.FirstOrDefault(a => a.Location == loc);
+                return cell != null
+                    ? new Cell {Type = cell.Type, Location = cell.Location}
+                    : new Cell {Type = CellType.Empty, Location = loc};
+            }
+
+            IEnumerable<Cell> NeighborCellsForCurrentState()
+            {
+                yield return GetOrEmpty(current, -1, 0, 1);
+                yield return GetOrEmpty(current, -1, 1, 0);
+                yield return GetOrEmpty(current, 1, -1, 0);
+                yield return GetOrEmpty(current, 1, 0, -1);
+                yield return GetOrEmpty(current, 0, -1, 1);
+                yield return GetOrEmpty(current, 0, 1, -1);
+            }
+
+            (int speed, Location actualLoc) ApplyDrift(int preSpeed, Location curLoc, Direction curDir, Direction dir)
+            {
+                return (preSpeed, default); //curLoc.ApplyDirection(dir));
+            }
+            
             while (true)
             {
-                Cell GetOrEmpty(CarState state, int dx, int dy, int dz)
-                {
-                    var x = state.Location.X + dx;
-                    var y = state.Location.Y + dy;
-                    var z = state.Location.Z + dz;
-
-                    var loc = new Location(x, y, z);
-                    var cell = _state.Cells.FirstOrDefault(a => a.Location == loc);
-                    return cell != null
-                        ? new Cell {Type = cell.Type, Location = cell.Location}
-                        : new Cell {Type = CellType.Empty, Location = loc};
-                }
-
-                IEnumerable<Cell> NeighborCellsForCurrentState()
-                {
-                    yield return GetOrEmpty(current, -1, 0, 1);
-                    yield return GetOrEmpty(current, -1, 1, 0);
-                    yield return GetOrEmpty(current, 1, -1, 0);
-                    yield return GetOrEmpty(current, 1, 0, -1);
-                    yield return GetOrEmpty(current, 0, -1, 1);
-                    yield return GetOrEmpty(current, 0, 1, -1);
-                }
-
-                (int speed, Location actualLoc) ApplyDrift(int preSpeed, Location curLoc, Direction curDir, Direction dir)
-                {
-                    var 
-                }
-
-                foreach (var validCell in NeighborCellsForCurrentState().Where(x => x.Type != CellType.Rock))
+                foreach (var validCell in NeighborCellsForCurrentState()
+                    .Where(x => x.Type != CellType.Rock && !passedLocs.Contains(x.Location)))
                 {
                     switch (validCell.Type)
                     {
@@ -108,29 +117,45 @@ namespace ZaborPokraste.Pathfinding
                             {
                                 var preSpeed = current.Speed + accel;
                                 var dir = current.Location.GetDirectionTo(validCell.Location);
-                                var (speed, actualLoc) = ApplyDrift(preSpeed, current.Location, current.Direction, dir);
-                                stack.Push(new CarState(actualLoc, speed, dir));
+                                var (speed, _) = ApplyDrift(preSpeed, current.Location, current.Direction, dir);
+                                current = new CarState(validCell.Location, speed, dir);
+                                passedLocs.Add(current.Location);
+                                stack.Push(current);
                             }
                             // yay
                             break;
                         case CellType.Pit:
+                            break;
                             if (current.Speed < minPitSpeed)
                             {
                                 if (current.Speed + maxAccelSpeed < minPitSpeed) break;
                             }
                             break;
                         case CellType.DangerousArea:
+                            break;
                             if (current.Speed > maxDgrSpeed)
                             {
                                 if (current.Speed - maxAccelSpeed > maxDgrSpeed) break;
                             }
                             break;
                     }
+                    
+                    if (validCell.Location == _state.EndLocation)
+                    {
+                        _nextPos = stack.ToArray()[1];
+                        
+                    };
                 }
             }
         }
-        
-        public abstract (Direction dir, int accel) GetBestTurn();
+
+        public (Direction dir, int accel) GetBestTurn()
+        {
+            var dir = _state.CarState.Location.GetDirectionTo(_nextPos.Location);
+            var accel = _nextPos.Speed - _state.CarState.Speed;
+
+            return (dir, accel);
+        }
         
         public bool NextStep()
         {
@@ -162,6 +187,9 @@ namespace ZaborPokraste.Pathfinding
             return false;
         }
 
-        public abstract TurnResult Move(Direction direction, int acceleration);
+        public TurnResult Move(Direction direction, int acceleration)
+        {
+            _client.
+        }
     }
 }
