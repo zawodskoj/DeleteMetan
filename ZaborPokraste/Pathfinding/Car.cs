@@ -178,6 +178,7 @@ namespace ZaborPokraste.Pathfinding
                 }
 
                 Console.WriteLine("Всё не в говне");
+                Console.WriteLine("Стейт " + _state.CarState);
             }
             catch
             {
@@ -267,7 +268,6 @@ namespace ZaborPokraste.Pathfinding
                     switch (validCell.Type)
                     {
                         case CellType.Pit:
-                        case CellType.DangerousArea:
                         case CellType.Empty:
                             for (var accel = -maxAccelSpeed; accel <= maxAccelSpeed; accel += speedStep)
                             {
@@ -297,20 +297,19 @@ namespace ZaborPokraste.Pathfinding
                             }
                             // yay
                             break;
-//                        case CellType.Pit:
 //                            break;
 //                            if (current.Speed < minPitSpeed)
 //                            {
 //                                if (current.Speed + maxAccelSpeed < minPitSpeed) break;
 //                            }
 //                            break;
-//                        case CellType.DangerousArea:
-//                            break;
-//                            if (current.Speed > maxDgrSpeed)
-//                            {
-//                                if (current.Speed - maxAccelSpeed > maxDgrSpeed) break;
-//                            }
-//                            break;
+                        case CellType.DangerousArea:
+                            break;
+                            if (current.Speed > maxDgrSpeed)
+                            {
+                                if (current.Speed - maxAccelSpeed > maxDgrSpeed) break;
+                            }
+                            break;
                     }
                     
                     if (validCell.Location == _state.EndLocation)
@@ -327,6 +326,9 @@ namespace ZaborPokraste.Pathfinding
 
         public (Direction dir, int accel) GetBestTurn()
         {
+            if (_state.CarState.Location.IsNeighborTo(_state.EndLocation))
+                return (_state.CarState.Location.GetDirectionTo(_state.EndLocation), 0);
+            
             var dir = _state.CarState.Location.GetDirectionTo(_nextPos.Location);
             var accel = _nextPos.Speed - _state.CarState.Speed;
 
@@ -338,8 +340,16 @@ namespace ZaborPokraste.Pathfinding
             if (_state.EndLocation == _state.CarState.Location) return true;
             
             var (dir, accel) = GetBestTurn();
-            if (_state.CarState.Speed == 0) accel += 30;
+            if (_state.CarState.Speed < 70)
+            {
+                accel = 30;
+            }
+            else
+            {
+                accel = 0;
+            }
             var result = await Move(dir, accel);
+            if (result.Location == _state.EndLocation) return true;
 
             foreach (var cell in result.VisibleCells)
             {

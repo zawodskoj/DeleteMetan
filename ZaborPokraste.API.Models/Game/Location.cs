@@ -65,5 +65,14 @@ namespace ZaborPokraste.API.Models.Game
         }
 
         public override string ToString() => $"xyz: {X} {Y} {Z}";
+
+        public bool IsNeighborTo(Location otherLoc)
+        {
+            var xdif = otherLoc.X - X;
+            var ydif = otherLoc.Y - Y;
+            
+            var p = Math.Abs(xdif) + Math.Abs(otherLoc.Y - Y) + Math.Abs(otherLoc.Z - Z);
+            return p == 2;
+        }
     }
 }
